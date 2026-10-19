@@ -21,6 +21,8 @@ WORLD = 6400
 STEP = 1 / 120
 FLIGHT_TOP = 85  # Keep actors below the HUD.
 ENEMY_COUNT = 30
+ARENA_LEFT = WORLD - WIDTH
+BOSS_HP = 60
 
 
 class Media:
@@ -100,6 +102,65 @@ class Bullet:
         self.life = 2.5
 
 
+class Boss(Actor):
+    """Three readable attack patterns, with a faster second phase."""
+    PATTERNS = ("ABANICO DIRIGIDO", "ANILLO", "BARRIDO")
+
+    def __init__(self):
+        super().__init__(WORLD - 260, 270, True)
+        self.box.size = (130, 120)
+        self.hp = BOSS_HP
+        self.active = False
+        self.attack_time = 0.0
+        self.pattern = 0
+        self.warning = True
+        self.cooldown = 0
+
+    @property
+    def phase(self):
+        return 2 if self.hp <= BOSS_HP // 2 else 1
+
+    def update(self, dt, player):
+        if not self.active or self.hp <= 0:
+            return []
+        self.physics(dt)
+        self.box.centery = 360 + math.sin(self.age * (1.4 if self.phase == 2 else 1)) * 175
+        self.facing = 1 if player.box.centerx > self.box.centerx else -1
+        previous_pattern = self.pattern
+        self.attack_time += dt
+        self.pattern = int(self.attack_time / 5) % 3
+        cycle = self.attack_time % 5
+        self.warning = cycle < 1.0 or cycle > 4.0
+        if previous_pattern != self.pattern:
+            self.cooldown = 0
+        if self.warning or self.cooldown > 0:
+            return []
+        delta = pg.Vector2(player.box.center) - pg.Vector2(self.box.center)
+        aim = delta.normalize() if delta.length_squared() else pg.Vector2(-1, 0)
+        if self.pattern == 0:
+            angles = (-24, -12, 0, 12, 24) if self.phase == 2 else (-18, 0, 18)
+            directions = [aim.rotate(a) for a in angles]
+            self.cooldown = .75 if self.phase == 2 else 1.0
+        elif self.pattern == 1:
+            count = 16 if self.phase == 2 else 12
+            directions = [pg.Vector2(1, 0).rotate(i * 360 / count + cycle * 22)
+                          for i in range(count)]
+            self.cooldown = 1.0 if self.phase == 2 else 1.3
+        else:
+            sweep = math.sin(cycle * 3) * 65
+            directions = [pg.Vector2(self.facing, 0).rotate(sweep)]
+            if self.phase == 2:
+                directions.append(pg.Vector2(self.facing, 0).rotate(-sweep))
+            self.cooldown = .17 if self.phase == 2 else .25
+        bullets = []
+        for direction in directions:
+            bullet = Bullet(self, direction)
+            bullet.velocity = direction * (310 if self.phase == 2 else 255)
+            bullet.life = 4.5
+            bullets.append(bullet)
+        return bullets
+
+
 class Game:
     def __init__(self, screen):
         self.screen = screen
@@ -115,7 +176,7 @@ class Game:
 
     def reset(self):
         self.player = Actor(90, 320)
-        self.enemies = [Actor(720 + i * 180, 140 + (i * 137) % 390, True)
+        self.enemies = [Actor(720 + i * 150, 140 + (i * 137) % 390, True)
                         for i in range(ENEMY_COUNT)]
         for i, enemy in enumerate(self.enemies):
             enemy.cooldown = .8 + (i % 5) * .27
@@ -127,6 +188,7 @@ class Game:
         self.kills = 0
         self.mode = "play"
         self.elapsed = 0.0
+        self.boss = Boss()
 
     def shoot(self, actor, direction):
         if actor.cooldown > 0:
@@ -138,13 +200,16 @@ class Game:
     def hit(self, actor, damage):
         if actor.invincible > 0 or actor.hp <= 0:
             return
-        actor.hp -= damage
+        actor.hp = max(0, actor.hp - damage)
         actor.invincible = .12 if actor.enemy else 1.0
         self.media.sound("hit")
         for _ in range(10):
             self.particles.append([pg.Vector2(actor.box.center),
                                    pg.Vector2(self.rng.uniform(-180, 180), self.rng.uniform(-200, 20)), .45])
-        if actor.enemy and actor.hp <= 0:
+        if actor is self.boss and actor.hp <= 0:
+            # A defeated boss cannot leave a final, unavoidable volley behind.
+            self.media.sound("boss_defeat")
+        elif actor.enemy and actor.hp <= 0:
             self.kills += 1
 
     def update(self, dt, axis=0, firing=False, vertical=0):
@@ -159,10 +224,16 @@ class Game:
         if axis:
             p.facing = 1 if axis > 0 else -1
         p.physics(dt)
+        if not self.boss.active and self.boss.hp > 0 and p.box.x >= ARENA_LEFT + 80:
+            self.boss.active = True
+            self.bullets.clear()
+            p.hp = min(6, p.hp + 2)
+        if self.boss.active and self.boss.hp > 0:
+            p.box.x = max(ARENA_LEFT + 20, min(WORLD - 180 - p.box.w, p.box.x))
         if firing:
             self.shoot(p, pg.Vector2(p.facing, 0))
         for e in self.enemies:
-            if e.hp <= 0:
+            if e.hp <= 0 or self.boss.active:
                 continue
             delta = pg.Vector2(p.box.center) - pg.Vector2(e.box.center)
             active = abs(delta.x) < 730
@@ -180,6 +251,12 @@ class Game:
                 self.shoot(e, delta.normalize())
             if p.box.colliderect(e.box):
                 self.hit(p, 1)
+        boss_bullets = self.boss.update(dt, p)
+        self.bullets.extend(boss_bullets)
+        if boss_bullets:
+            self.media.sound("enemy_shoot")
+        if self.boss.active and self.boss.hp > 0 and p.box.colliderect(self.boss.box):
+            self.hit(p, 2)
         # Substeps stop fast bullets tunnelling through actors.
         remaining = []
         for b in self.bullets:
@@ -190,14 +267,15 @@ class Game:
                 if not alive:
                     break
                 b.box.move_ip(b.velocity.x * dt / steps, b.velocity.y * dt / steps)
-                for target in ([p] if b.enemy else self.enemies):
+                targets = [p] if b.enemy else self.enemies + ([self.boss] if self.boss.active else [])
+                for target in targets:
                     if target.hp > 0 and b.box.colliderect(target.box):
                         self.hit(target, 1)
                         alive = False
                         break
             if alive and -50 < b.box.x < WORLD + 50 and -100 < b.box.y < HEIGHT + 100:
                 remaining.append(b)
-        self.bullets = remaining
+        self.bullets = [b for b in remaining if not (self.boss.active and self.boss.hp <= 0 and b.enemy)]
         for item in self.pickups[:]:
             if p.hp > 0 and p.hp < 6 and p.box.colliderect(item):
                 p.hp = min(6, p.hp + 2)
@@ -207,11 +285,11 @@ class Game:
             particle[0] += particle[1] * dt
             particle[2] -= dt
         self.particles = [a for a in self.particles if a[2] > 0]
-        target_camera = max(0, min(WORLD - WIDTH, p.box.centerx - WIDTH * .37))
+        target_camera = ARENA_LEFT if self.boss.active else max(0, min(WORLD - WIDTH, p.box.centerx - WIDTH * .37))
         self.camera += (target_camera - self.camera) * min(1, 7 * dt)
         if p.hp <= 0:
             self.mode = "dead"
-        elif p.box.centerx > WORLD - 150:
+        elif self.boss.hp <= 0 and p.box.centerx > WORLD - 150:
             self.mode = "win"
 
     def text(self, text, pos, color=(224, 239, 255), font=None):
@@ -275,9 +353,13 @@ class Game:
 
     def draw(self):
         self.background()
+        if self.boss.active and self.boss.hp > 0:
+            wall_x = int(ARENA_LEFT + 20 - self.camera)
+            pg.draw.line(self.canvas, (255, 115, 140), (wall_x, FLIGHT_TOP), (wall_x, HEIGHT), 3)
         goal_x = WORLD - 120 - self.camera
-        pg.draw.line(self.canvas, (94, 239, 195), (int(goal_x), FLIGHT_TOP), (int(goal_x), HEIGHT), 5)
-        self.text("META", (int(goal_x) - 60, 100), (94, 239, 195))
+        goal_color = (255, 115, 140) if self.boss.hp > 0 else (94, 239, 195)
+        pg.draw.line(self.canvas, goal_color, (int(goal_x), FLIGHT_TOP), (int(goal_x), HEIGHT), 5)
+        self.text("BLOQUEADA" if self.boss.hp > 0 else "META", (int(goal_x) - 115, 140), goal_color)
         for item in self.pickups:
             box = pg.Rect(round(item.x - self.camera), round(item.y), 22, 22)
             image = self.media.image(self.media.config["pickup"], box.size)
@@ -289,6 +371,7 @@ class Game:
         self.draw_actor(self.player)
         for e in self.enemies:
             self.draw_actor(e)
+        self.draw_boss()
         for b in self.bullets:
             box = pg.Rect(round(b.box.x - self.camera), round(b.box.y), 16, 7)
             image = self.media.image(self.media.config["bullets"]["enemy" if b.enemy else "player"], box.size)
@@ -311,7 +394,7 @@ class Game:
             veil.fill((5, 12, 27, 215))
             self.canvas.blit(veil, (0, 0))
             title, sub = {
-                "title": ("NEON RUNNER", "Vuela hasta la meta. Esquiva los disparos y busca botiquines."),
+                "title": ("NEON RUNNER", "Vuela, esquiva y derrota al jefe final para abrir la meta."),
                 "pause": ("PAUSA", "P o Esc para continuar"),
                 "dead": ("INTENTA OTRA VEZ", "R o Enter para reiniciar"),
                 "win": ("MISIÓN COMPLETA", f"Enemigos derrotados: {self.kills}/{len(self.enemies)}  ·  Tiempo: {int(self.elapsed)} s"),
@@ -325,6 +408,35 @@ class Game:
         self.screen.fill((4, 9, 18))
         self.screen.blit(pg.transform.scale(self.canvas, size), ((dest.w - size[0]) // 2, (dest.h - size[1]) // 2))
         pg.display.flip()
+
+    def draw_boss(self):
+        boss = self.boss
+        if not boss.active or boss.hp <= 0:
+            return
+        box = pg.Rect(round(boss.box.x - self.camera), round(boss.box.y), 130, 120)
+        image = None
+        if "boss" in self.media.config["sprites"]:
+            cfg = self.media.config["sprites"]["boss"]
+            state = "fly" if cfg.get("fly") else "idle"
+            image = self.media.actor("boss", state, box.size, boss.age, boss.facing)
+        flashing = boss.invincible > 0 and int(boss.age * 24) % 2
+        if not flashing:
+            if image:
+                self.canvas.blit(image, box)
+            else:
+                color = (255, 155, 75) if boss.phase == 1 else (255, 75, 150)
+                pg.draw.rect(self.canvas, (41, 26, 57), box, border_radius=24)
+                pg.draw.rect(self.canvas, color, box, 5, border_radius=24)
+                pg.draw.circle(self.canvas, color, box.center, 26)
+                pg.draw.circle(self.canvas, (255, 239, 190), box.center, 11)
+                for offset in (22, 90):
+                    pg.draw.rect(self.canvas, color, (box.x - 12, box.y + offset, box.w + 24, 9))
+        pg.draw.rect(self.canvas, (20, 18, 38), (240, 84, 620, 46), border_radius=6)
+        pg.draw.rect(self.canvas, (78, 36, 61), (250, 113, 600, 8))
+        pg.draw.rect(self.canvas, (255, 110, 130), (250, 113, round(600 * boss.hp / BOSS_HP), 8))
+        label = "PREPARANDO" if boss.warning else "ATAQUE"
+        self.text(f"JEFE {boss.hp}/{BOSS_HP}  FASE {boss.phase}  {label}: {boss.PATTERNS[boss.pattern]}",
+                  (250, 89), (255, 208, 175), self.small)
 
 
 def main():

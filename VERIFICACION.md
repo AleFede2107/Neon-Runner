@@ -1,9 +1,11 @@
-# Verificación de entrega
+# Verificación — jefe final
 
-Ejecutado con **CPython 3.11.9 de 64 bits**, pygame-ce 2.5.3 y SDL 2.30.12 en Windows.
+CPython 3.11.9, pygame-ce 2.5.3, SDL 2.30.12 en Windows.
 
-- `python -m unittest -v`: ocho pruebas aprobadas.
-- `python main.py --smoke-test`: 600 pasos de simulación completados, incluyendo dibujo, disparos y enemigos.
-- Captura `vista_previa.png`: inspección visual del nivel, personajes, fondo, plataformas e interfaz.
+- Catorce pruebas automatizadas aprobadas: incluyen activación de arena, bloqueo de victoria, daño mediante proyectiles, derrota, limpieza de balas, reinicio, pausa y patrones de ambas fases.
+- Ciclo completo de ataques comprobado durante 2400 pasos y límites verticales del jefe verificados.
+- Simulación general de 600 pasos completada.
+- Simulación de combate de 2400 pasos con jugador invulnerable para inspeccionar el encuentro completo y su dibujo.
+- Captura del combate inspeccionada visualmente.
 
-Las pruebas se ejecutaron con las salidas de vídeo y audio virtuales de SDL. No se hizo una partida interactiva con teclado ni una escucha de audio real. Los recursos artísticos personalizados aún no se han suministrado; conviene probar el paquete definitivo en el equipo donde se jugará. Estas comprobaciones no son una garantía de ausencia absoluta de errores.
+Se usaron vídeo y audio virtuales de SDL. No se hizo una partida interactiva ni una escucha de audio real. El equilibrio de dificultad y los recursos finales deben probarse en el equipo del usuario.
