@@ -1,0 +1,16 @@
+{
+  "background": [
+    {"file": "background/sky.png", "speed": 0.08},
+    {"file": "background/far.png", "speed": 0.25},
+    {"file": "background/near.png", "speed": 0.55}
+  ],
+  "sprites": {
+    "player": {"fps": 10, "idle": ["player/idle.png"], "run": ["player/run_01.png", "player/run_02.png"], "jump": ["player/jump.png"]},
+    "enemy": {"fps": 8, "idle": ["enemy/idle.png"], "run": ["enemy/run_01.png", "enemy/run_02.png"], "jump": ["enemy/jump.png"]}
+  },
+  "terrain": "terrain/platform.png",
+  "pickup": "items/health.png",
+  "bullets": {"player": "projectiles/player.png", "enemy": "projectiles/enemy.png"},
+  "music": "audio/music.ogg",
+  "sounds": {"shoot": "audio/shoot.wav", "enemy_shoot": "audio/enemy_shoot.wav", "jump": "audio/jump.wav", "hit": "audio/hit.wav", "pickup": "audio/pickup.wav"}
+}
