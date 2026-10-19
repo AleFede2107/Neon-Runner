@@ -43,21 +43,6 @@ Si ya tienes el entorno del juego original, solo necesitas ejecutar el último c
 
 Derrota al jefe final y cruza la línea de meta del extremo derecho a cualquier altura. Tienes seis puntos de salud. Los cuatro botiquines flotantes recuperan dos puntos cada uno. Los enemigos resisten tres impactos, persiguen tu altura y disparan hacia tu posición. No necesitas derrotar a todos los enemigos normales, pero sí al jefe final. El movimiento queda limitado a la ventana de juego, por debajo de la interfaz. Soltar los controles detiene al jugador; no cae. La velocidad diagonal está normalizada.
 
-## Sustituir placeholders
-
-Conserva `assets/manifest.json` y coloca tus imágenes y audio en las rutas que indica, relativas a `assets/`. Puedes cambiar esas rutas y reiniciar el juego. Los archivos ausentes usan placeholders; el audio ausente queda en silencio.
-
-En `sprites.player` y `sprites.enemy` puedes añadir una lista `fly`, por ejemplo:
-
-```json
-"fly": ["player/fly_01.png", "player/fly_02.png"]
-```
-
-Si existe `fly`, se usa como animación de vuelo. Si no, se conservan las animaciones `run` al moverse e `idle` al detenerse. `fps` controla su velocidad. Cada imagen debe mirar a la derecha y tener transparencia: el juego la invierte al mirar a la izquierda. El tamaño actual de los personajes es de 36 × 54 píxeles; los fotogramas se escalan a ese tamaño. Los spritesheets deben separarse en imágenes individuales. `jump`, `terrain` y el sonido `jump` del manifiesto antiguo ya no se usan y puedes eliminarlos.
-
-Las capas del fondo se definen en el arreglo `background`, de atrás hacia delante. Cada entrada tiene `file` y `speed` (por ejemplo 0.08, 0.25 y 0.55). Las imágenes se escalan proporcionalmente a 650 píxeles de alto y se repiten horizontalmente. Usa bordes laterales que encajen y transparencia en las capas superiores. Puedes añadir tantas capas como necesites. Se conserva el parallax horizontal.
-
-`bullets.player` y `bullets.enemy` indican imágenes de proyectiles de 16 × 7; `pickup`, el botiquín de 22 × 22. La música indicada en `music` se reproduce en bucle. `sounds` permite efectos `shoot`, `enemy_shoot`, `hit` y `pickup`. El juego también puede arrancar sin dispositivo de audio.
 
 ## Verificación y código
 
