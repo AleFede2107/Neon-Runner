@@ -21,6 +21,9 @@ Juego para Python 3.11.9 y pygame-ce 2.5.3. hecho con Vibecoding ChatGPT
 <formato> quiero recibir el codigo modificado para incluir el jefe final en el juego<formato>
 <criterio de exito> el juego corre sin errores e incluye los cambios al proyecto <criterio de exito>"
 
+# Reflexion Final
+La ia si bien es una herramienta eficiente para programar tiene ciertas limitaciones como la cantidad de memoria y la cantidad limitada de tokens, tambien esta el limite al nivel de comprension del codigo generado, en mi caso personal no estoy tan familiarizado con el lenguaje de programacion de python, si bien manejo los aspectos basicos mi desconocimento limita que tanto puedo personalizar los resultados de lo que la ia puede generar, por lo cual no recomendaria usar agentes de ia para programar en lenguajes que no sabe o no domina del todo.
+
 ## Ejecutar en Windows
 
 Abre una terminal en esta carpeta (donde está main.py), con Python 3.11.9 instalado:
