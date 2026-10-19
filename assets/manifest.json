@@ -1,12 +1,17 @@
 {
   "background": [
-    {"file": "background/sky.png", "speed": 0.08},
-    {"file": "background/far.png", "speed": 0.25},
-    {"file": "background/near.png", "speed": 0.55}
+    {"file": "background/Sky_sky.png", "speed": 0.08},
+    {"file": "background/Sky_back_mountain.png", "speed": 0.10},
+    {"file": "background/sky_front_mountain.png", "speed": 0.15},
+    {"file": "background/sky_clouds.png", "speed": 0.20},
+    {"file": "background/Sky_front_cloud.png", "speed": 0.25},
+    {"file": "background/sky_cloud_floor_2.png", "speed": 0.45},
+    {"file": "background/sky_cloud_floor.png", "speed": 0.55}
   ],
   "sprites": {
-    "player": {"fps": 10, "idle": ["player/idle.png"], "run": ["player/run_01.png", "player/run_02.png"], "jump": ["player/jump.png"]},
-    "enemy": {"fps": 8, "idle": ["enemy/idle.png"], "run": ["enemy/run_01.png", "enemy/run_02.png"], "jump": ["enemy/jump.png"]}
+    "player": {"fps": 10, "idle": ["player/murcielago.png"], "run": ["player/murcielago.png", "player/murcielago.png"], "jump": ["player/murcielago.png"]},
+    "enemy": {"fps": 8, "idle": ["enemy/pez_globo.png"], "run": ["enemy/pez_globo.png", "enemy/pez_globo.png"], "jump": ["enemy/pez_globo.png"]},
+    "boss": {"fps": 8, "idle": ["boss/tiburon.png"], "run": ["boss/tiburon.png", "boss/tiburon.png"], "jump": ["boss/tiburon.png"]}
   },
   "terrain": "terrain/platform.png",
   "pickup": "items/health.png",

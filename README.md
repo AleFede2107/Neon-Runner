@@ -1,6 +1,25 @@
-# Neon Runner — versión de vuelo
+# Neon Runner
 
-Juego para Python 3.11.9 y pygame-ce 2.5.3. No hay gravedad, suelo ni plataformas: tanto el jugador como los 30 enemigos vuelan. Los edificios del placeholder son exclusivamente decorativos.
+Juego para Python 3.11.9 y pygame-ce 2.5.3. hecho con Vibecoding ChatGPT
+
+# prompts
+- prompt inicial:"<contexto>Soy un estudiante de un curso sobre el uso de ia como asistente para devs junior, y me dejaron una tarea acerca de hacer vibecoding de un videojuego en python<contexto>
+<tarea> Escribe el codigo en python de un videojuego tipo side scroller para computadora en el cual tanto el personaje como los enemigos pueden disparar proyectiles<tarea>
+<detalles>Puedes usar las bibliotecas que creas neccesarias, usa la version 3.11.9 de Python, Puedes reemplazar el arte con objetos que sirvan de placeholder, prepara el fondo para poder usar un paquete de recursos dividido en distintas capas que se moveran generando un efecto parallax<detalles>
+<formato> el resultado debe ser un juego sidescroller hecho en python que solo necesite que le agregue los recursos como musica, efectos, fondo y personajes(tanto el jugable como el enemigo)<formato>
+<criterio de exito> El codigo corre un juego sidescroller sin bugs que esta listo para remplazar los placeholders con el arte<criterio de exito>"
+
+- esta prompt me genero un shooter plataformer estilo metal slug asi que utilice esta prompt para tranformarlo en un juego de vuelo en lugar de un plataformer:"<contexto>Los assets que encontre son mas adecuados para un estilo de side scroller en el que el personaje principal vuela y los enemigos tambien<contexto>
+<tarea> Modifica el codigo del juego para eliminar las plataformas y permitir que tanto los personajes como los enemigos se muevan libremente en el eje vertical<tarea>
+<detalles> quiero permitir libre movimiento en el eje vertical tanto para el jugador como los enemigos, para ello hay que eliminar las plataformas, el concepto de gravedad y aumentar el numero de enemigos para compensar la falta de obstaculos<detalles>
+<formato>La respuesta es el script de python modificado para incluir los cambios deseados<formato>
+<criterio de exito> el codigo sigue corriendo un juego funcional pero ahora incluye los cambios deseados<criterio de exito>"
+
+- el juego esta bien pero senti que le faltaba un elemento que generara mas interes y un sentido de dificultad asi que use este prompt para pedir que agregase un jefe final al juego:"<contexto> me parece que le hace falta un jefe final para agregar interes al juego <contexto>
+<tarea> modifica el codigo existente para incluir un jefe al final del nivel<tarea>
+<detalles> agrega un jefe final al juego, el jefe debe de tener mas vida que los enemigos normales , ser mas grande y tener patrones de ataque mas complejos<detalles>
+<formato> quiero recibir el codigo modificado para incluir el jefe final en el juego<formato>
+<criterio de exito> el juego corre sin errores e incluye los cambios al proyecto <criterio de exito>"
 
 ## Ejecutar en Windows
 
